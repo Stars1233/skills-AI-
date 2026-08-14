@@ -12,6 +12,8 @@ license: MIT
 
 Scan C#/.NET code for performance anti-patterns and produce prioritized findings with concrete fixes. Patterns sourced from the official .NET performance blog series, distilled to customer-actionable guidance.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `analyzing-dotnet-performance` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## When to Use
 
 - Reviewing C#/.NET code for performance optimization opportunities

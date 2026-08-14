@@ -20,6 +20,8 @@ BenchmarkDotNet (BDN) is a .NET library for writing and running microbenchmarks.
 
 > **Note:** Evaluations of LLMs writing BenchmarkDotNet benchmarks have revealed common failure patterns caused by outdated assumptions about BDN's behavior — particularly around runtime comparison, job configuration, and execution defaults that have changed in recent versions. The reference files in this skill contain verified, current information. **You MUST read the reference files relevant to the task before writing any code** — your training data likely contains outdated or incorrect BDN patterns.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `microbenchmarking` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## Key concepts
 
 - **Job** — describes how to run a benchmark: runtime, iteration counts, launch count, run strategy, and environment settings. Multiple jobs can be configured to run the same benchmarks under different conditions.

@@ -18,6 +18,8 @@ license: MIT
 
 Implement page navigation in .NET MAUI apps using Shell. Shell provides URI-based navigation, a flyout menu, tab bars, and a four-level visual hierarchy — all configured declaratively in XAML.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `maui-shell-navigation` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## When to Use
 
 - Setting up top-level app navigation with tabs or a flyout menu

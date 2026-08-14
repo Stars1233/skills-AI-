@@ -18,6 +18,8 @@ Calling native code from .NET is powerful but unforgiving. Incorrect signatures,
 
 This skill covers both `DllImport` (available since .NET Framework 1.0) and `LibraryImport` (source-generated, .NET 7+). When targeting .NET Framework, always use `DllImport`. When targeting .NET 7+, prefer `LibraryImport` for new code. When native AOT is a requirement, `LibraryImport` is the only option.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `dotnet-pinvoke` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## When to Use This Skill
 
 - Writing a new `[DllImport]` or `[LibraryImport]` declaration from a C/C++ header

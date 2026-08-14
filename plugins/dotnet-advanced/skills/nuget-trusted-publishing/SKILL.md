@@ -13,6 +13,8 @@ license: MIT
 
 Set up [NuGet trusted publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing) on a GitHub Actions repo. Replaces long-lived API keys with OIDC-based short-lived tokens — no secrets to rotate or leak.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `nuget-trusted-publishing` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## Prerequisites
 
 - **GitHub Actions** — this skill covers GitHub Actions setup only

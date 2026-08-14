@@ -18,6 +18,8 @@ license: MIT
 
 # Coverage Analysis
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `coverage-analysis` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## Purpose
 
 Raw coverage percentages answer "what code was executed?" — they don't answer what you actually need to know:

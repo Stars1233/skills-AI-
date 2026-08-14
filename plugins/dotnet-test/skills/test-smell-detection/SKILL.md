@@ -24,6 +24,8 @@ Deep formal audit of test code in any supported language using an academic test 
 
 > **Language-specific guidance**: Call the `test-analysis-extensions` skill to discover available extension files, then read the file matching the target codebase. The extension file documents test markers, sleep / time / random APIs, skip annotations, setup/teardown, mystery-guest indicators (file/database/network/env), integration markers, and language-specific calibration notes that drive the smell detectors below.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `test-smell-detection` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## Why Test Smells Matter
 
 Test smells erode confidence in a test suite and inflate maintenance costs:

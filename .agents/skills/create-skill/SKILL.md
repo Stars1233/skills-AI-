@@ -137,6 +137,7 @@ Match the owner pattern used by sibling skills in the same plugin.
 - Confirm frontmatter fields are valid
 - Ensure SKILL.md is under 500 lines
 - Check that file references use relative paths
+- Add a "Resolving file paths" blockquote note before the first `references/` or `scripts/` path usage. Skills installed as VS Code agent plugins live outside the workspace, so bare relative paths like `references/foo.md` silently fail. The note must instruct the agent to locate the skill's installation directory by name before resolving any `references/` or `scripts/` paths
 - Verify instructions are actionable and specific
 - Run `dotnet run --project eng/skill-validator/src/SkillValidator.csproj -- check --plugin ./plugins/<plugin>`
 
@@ -229,6 +230,7 @@ After creating a skill, verify:
 | Instructions are ambiguous | Use numbered steps with concrete actions |
 | Missing validation steps | Add checkpoints that verify success |
 | SKILL.md too long | Move detailed content to `references/` files |
+| `references/` paths assume workspace-relative resolution | Add a "Resolving file paths" blockquote that instructs the agent to locate the skill directory first |
 | Hardcoded environment assumptions | Document requirements in `compatibility` field |
 | Missing CODEOWNERS entry | Add entries for both `/plugins/<plugin>/skills/<skill-name>/` and `/tests/<plugin>/<skill-name>/` matching sibling skills' owner pattern |
 | Skill restates what the model already knows | Cut it; a skill is scored as a delta over the unskilled model |

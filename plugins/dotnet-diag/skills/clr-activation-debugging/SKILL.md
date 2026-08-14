@@ -14,6 +14,8 @@ license: MIT
 
 Diagnose .NET Framework runtime activation issues by analyzing CLR activation logs (CLRLoad logs) produced by the shim (mscoree.dll). These logs record every decision the shim makes when selecting and loading a CLR version.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `clr-activation-debugging` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## When to Use
 
 - A process fails to load the CLR at all ("Unable to find a version of the runtime to use")

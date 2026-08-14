@@ -440,6 +440,10 @@ Every skill is scored head-to-head against the *same model with no skill loaded*
   automatic loss.
 - Verify load-bearing API claims by compiling or probing, not by reading source.
 - Keep the common path in `SKILL.md` and gate rare or expensive paths behind `references/` reads.
+- When a skill references `references/` or `scripts/` files, include a "Resolving file paths"
+  blockquote that instructs the agent to locate the skill's installation directory by name before
+  resolving paths. Bare relative paths like `references/foo.md` resolve against the workspace CWD,
+  which silently fails when the skill is installed as a VS Code agent plugin outside the workspace.
 
 **Activation**
 

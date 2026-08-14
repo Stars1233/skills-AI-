@@ -21,6 +21,8 @@ Migrate a .NET 10 project or solution to .NET 11, systematically resolving all b
 
 > **Note:** .NET 11 is currently in preview. This skill covers breaking changes documented through Preview 3.
 
+> **Resolving file paths:** All `references/` and `scripts/` paths in this skill are relative to the skill’s own directory, not the workspace. Before loading any reference file, locate this skill’s installation directory by searching for a directory named `migrate-dotnet10-to-dotnet11` containing a `SKILL.md` file. It may be under the workspace (`.agents/skills/` or `plugins/`), or in an external location such as a VS Code extensions folder. Resolve all `references/` and `scripts/` paths from that directory.
+
 ## When to Use
 
 - Upgrading `TargetFramework` from `net10.0` to `net11.0`
