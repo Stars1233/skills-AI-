@@ -139,6 +139,27 @@ public class ResultsSchemaTests
         }
     }
 
+    [Fact]
+    public async Task ConsolidationFailsForNullJsonRoot()
+    {
+        var paths = CreateTempPaths();
+        try
+        {
+            await File.WriteAllTextAsync(
+                paths.Input,
+                "null",
+                TestContext.Current.CancellationToken);
+
+            var exitCode = await ConsolidateCommand.Consolidate([paths.Input], paths.Output);
+
+            Assert.Equal(1, exitCode);
+        }
+        finally
+        {
+            DeleteTempPaths(paths);
+        }
+    }
+
     private static SkillVerdict CreateVerdict() => new()
     {
         SkillName = "example",

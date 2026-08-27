@@ -44,22 +44,21 @@ public static class ConsolidateCommand
             try
             {
                 var content = await File.ReadAllTextAsync(file);
-                var data = System.Text.Json.JsonSerializer.Deserialize(content,
-                    SkillValidatorJsonContext.Default.ConsolidateData);
-                if (data is not null)
+                var data = System.Text.Json.JsonSerializer.Deserialize(
+                    content,
+                    SkillValidatorJsonContext.Default.ConsolidateData)
+                    ?? throw new InvalidDataException("Results JSON root must be an object.");
+                LegacySkillValidatorResultsSchema.EnsureSupported(data.SchemaOwner, data.SchemaVersion);
+                foreach (var verdict in data.Verdicts ?? [])
                 {
-                    LegacySkillValidatorResultsSchema.EnsureSupported(data.SchemaOwner, data.SchemaVersion);
-                    foreach (var verdict in data.Verdicts ?? [])
-                    {
-                        LegacySkillValidatorResultsSchema.EnsureSupported(
-                            verdict.SchemaOwner,
-                            verdict.SchemaVersion);
-                    }
+                    LegacySkillValidatorResultsSchema.EnsureSupported(
+                        verdict.SchemaOwner,
+                        verdict.SchemaVersion);
                 }
-                if (data?.Verdicts is not null)
+                if (data.Verdicts is not null)
                     allVerdicts.AddRange(data.Verdicts);
-                if (data?.Model is not null && model is null) model = data.Model;
-                if (data?.JudgeModel is not null && judgeModel is null) judgeModel = data.JudgeModel;
+                if (data.Model is not null && model is null) model = data.Model;
+                if (data.JudgeModel is not null && judgeModel is null) judgeModel = data.JudgeModel;
             }
             catch (Exception error)
             {
