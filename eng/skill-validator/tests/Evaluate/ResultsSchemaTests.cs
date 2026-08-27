@@ -82,11 +82,13 @@ public class ResultsSchemaTests
         }
     }
 
-    [Fact]
-    public void VallyAdapterSchemaIsRejectedByLegacyConsolidation()
+    [Theory]
+    [InlineData(3)]
+    [InlineData(4)]
+    public void VallyAdapterSchemasAreRejectedByLegacyConsolidation(int schemaVersion)
     {
         var error = Assert.Throws<InvalidDataException>(
-            () => LegacySkillValidatorResultsSchema.EnsureSupported(null, 4));
+            () => LegacySkillValidatorResultsSchema.EnsureSupported(null, schemaVersion));
 
         Assert.Contains("Vally adapter results use a separate schema", error.Message);
     }
@@ -124,7 +126,7 @@ public class ResultsSchemaTests
         {
             await File.WriteAllTextAsync(
                 paths.Input,
-                """{"schemaVersion":4,"verdicts":[]}""",
+                """{"schemaVersion":3,"verdicts":[]}""",
                 TestContext.Current.CancellationToken);
 
             var exitCode = await ConsolidateCommand.Consolidate([paths.Input], paths.Output);
