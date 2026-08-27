@@ -158,10 +158,7 @@ public class ResultsSchemaTests
 
     private static void DeleteTempPaths((string Directory, string Input, string Output) paths)
     {
-        if (File.Exists(paths.Input))
-            File.Delete(paths.Input);
-        if (File.Exists(paths.Output))
-            File.Delete(paths.Output);
-        Directory.Delete(paths.Directory);
+        if (Directory.Exists(paths.Directory))
+            Directory.Delete(paths.Directory, recursive: true);
     }
 }

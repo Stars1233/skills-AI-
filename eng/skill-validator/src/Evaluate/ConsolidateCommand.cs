@@ -70,7 +70,14 @@ public static class ConsolidateCommand
 
         var output = Reporter.GenerateMarkdownSummary(allVerdicts, model, judgeModel);
         await File.WriteAllTextAsync(outputPath, output);
+        if (inputFailed)
+        {
+            Console.Error.WriteLine(
+                $"Wrote a partial diagnostic summary to {outputPath}; one or more input files failed.");
+            return 1;
+        }
+
         Console.WriteLine($"Consolidated {files.Length} result file(s) into {outputPath}");
-        return inputFailed ? 1 : 0;
+        return 0;
     }
 }
