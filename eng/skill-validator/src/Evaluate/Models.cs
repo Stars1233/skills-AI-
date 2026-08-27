@@ -353,12 +353,9 @@ public sealed class SkillVerdict
         init => _schemaOwner = value;
     }
 
-    public int SchemaVersion
+    public int? SchemaVersion
     {
-        // Source-generated deserialization supplies 0 when old verdict JSON omits this property.
-        get => _schemaVersion is null or 0
-            ? LegacySkillValidatorResultsSchema.CurrentVersion
-            : _schemaVersion.Value;
+        get => _schemaVersion ?? LegacySkillValidatorResultsSchema.CurrentVersion;
         init => _schemaVersion = value;
     }
     public required string SkillName { get; init; }

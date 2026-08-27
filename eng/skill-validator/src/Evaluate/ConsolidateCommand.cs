@@ -64,7 +64,7 @@ public static class ConsolidateCommand
             catch (Exception error)
             {
                 inputFailed = true;
-                Console.Error.WriteLine($"Failed to parse {file}: {error}");
+                Console.Error.WriteLine($"Failed to read or validate {file}: {error.Message}");
             }
         }
 

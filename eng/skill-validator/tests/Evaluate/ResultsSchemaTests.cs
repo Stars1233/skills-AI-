@@ -92,6 +92,31 @@ public class ResultsSchemaTests
     }
 
     [Fact]
+    public void ExplicitSchemaVersionZeroIsRejected()
+    {
+        var json = """
+            {
+              "schemaOwner": "skill-validator",
+              "schemaVersion": 0,
+              "skillName": "example",
+              "skillPath": "plugins/example/skills/example",
+              "passed": false,
+              "scenarios": [],
+              "overallImprovementScore": 0,
+              "reason": "invalid version"
+            }
+            """;
+        var verdict = JsonSerializer.Deserialize(json, SkillValidatorJsonContext.Default.SkillVerdict);
+
+        Assert.NotNull(verdict);
+        var error = Assert.Throws<InvalidDataException>(
+            () => LegacySkillValidatorResultsSchema.EnsureSupported(
+                verdict.SchemaOwner,
+                verdict.SchemaVersion));
+        Assert.Contains("'0'", error.Message);
+    }
+
+    [Fact]
     public async Task ConsolidationFailsForVallyAdapterResults()
     {
         var paths = CreateTempPaths();
