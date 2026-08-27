@@ -157,11 +157,14 @@ Each scenario merges the compare preference for that stimulus with the absolute 
 `unexpectedEvals`, `invalidEvals`, and `measurementInvalidEvals`.
 `measurementInvalidEvals` is the fail-closed subset: missing baseline or skilled
 records, unresolved judge or pairing failures, malformed reports, and other
-adapter failures. It excludes only the explicit `underpowered` eval-design
-state. The workflow requires this list to be empty and also checks that the
-number of primary result files equals the exact pre-run manifest count. A
-missing or invalid measurement cannot disappear while unrelated results make
-the job look complete.
+adapter failures. This includes an eval spec that the adapter cannot read:
+without that file it cannot enforce `expect_activation: false`, so it writes an
+`eval_spec_unreadable` invalid verdict instead of assuming that every stimulus
+should activate. The subset excludes only the explicit `underpowered`
+eval-design state. The workflow requires this list to be empty and also checks
+that the number of primary result files equals the exact pre-run manifest
+count. A missing or invalid measurement cannot disappear while unrelated
+results make the job look complete.
 
 ## Reaching the raw Vally output
 

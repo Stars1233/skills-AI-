@@ -25,7 +25,7 @@ public static class ConsolidateCommand
         return command;
     }
 
-    private static async Task<int> Consolidate(string[] files, string outputPath)
+    internal static async Task<int> Consolidate(string[] files, string outputPath)
     {
         if (files.Length == 0)
         {
@@ -37,6 +37,7 @@ public static class ConsolidateCommand
         var allVerdicts = new List<SkillVerdict>();
         string? model = null;
         string? judgeModel = null;
+        bool inputFailed = false;
 
         foreach (var file in files)
         {
@@ -45,6 +46,16 @@ public static class ConsolidateCommand
                 var content = await File.ReadAllTextAsync(file);
                 var data = System.Text.Json.JsonSerializer.Deserialize(content,
                     SkillValidatorJsonContext.Default.ConsolidateData);
+                if (data is not null)
+                {
+                    LegacySkillValidatorResultsSchema.EnsureSupported(data.SchemaOwner, data.SchemaVersion);
+                    foreach (var verdict in data.Verdicts ?? [])
+                    {
+                        LegacySkillValidatorResultsSchema.EnsureSupported(
+                            verdict.SchemaOwner,
+                            verdict.SchemaVersion);
+                    }
+                }
                 if (data?.Verdicts is not null)
                     allVerdicts.AddRange(data.Verdicts);
                 if (data?.Model is not null && model is null) model = data.Model;
@@ -52,6 +63,7 @@ public static class ConsolidateCommand
             }
             catch (Exception error)
             {
+                inputFailed = true;
                 Console.Error.WriteLine($"Failed to parse {file}: {error}");
             }
         }
@@ -59,6 +71,6 @@ public static class ConsolidateCommand
         var output = Reporter.GenerateMarkdownSummary(allVerdicts, model, judgeModel);
         await File.WriteAllTextAsync(outputPath, output);
         Console.WriteLine($"Consolidated {files.Length} result file(s) into {outputPath}");
-        return 0;
+        return inputFailed ? 1 : 0;
     }
 }
