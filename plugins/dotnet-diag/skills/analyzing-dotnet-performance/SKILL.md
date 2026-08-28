@@ -37,7 +37,15 @@ Scan C#/.NET code for performance anti-patterns and produce prioritized findings
 
 ### Step 1: Load Reference Files
 
-Resolve bundled paths from the directory that contains this `SKILL.md`, not from the user's workspace. Load `references/critical-patterns.md` and the topic-specific reference files listed below. These contain detailed detection recipes and grep commands.
+Resolve bundled paths from the directory that contains this `SKILL.md`, not from the user's workspace. Load these reference files, which contain detailed detection recipes and grep commands:
+
+- `references/critical-patterns.md`
+- `references/async-patterns.md`
+- `references/memory-and-strings.md`
+- `references/regex-patterns.md`
+- `references/collections-and-linq.md`
+- `references/io-and-serialization.md`
+- `references/structural-patterns.md`
 
 If a direct read fails, list this skill's `references/` directory once and retry only when the listing shows the expected file. Do not use workspace file or text search to locate the skill installation.
 
