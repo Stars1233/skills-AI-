@@ -49,11 +49,11 @@ Resolve bundled paths from the directory that contains this `SKILL.md`, not from
 
 If a direct read fails, list this skill's `references/` directory once and retry only when the listing shows the expected file. Do not use workspace file or text search to locate the skill installation.
 
-If the reference files remain unavailable, proceed to Step 3 with the inline recipes and include `Reference coverage: unavailable; used inline recipes only.` in the final report.
+If one or more expected reference files remain unavailable, use the loaded references where possible and the inline recipes in Step 3 for the missing coverage. Include `Reference coverage: reduced; unavailable: <paths>; used inline recipes for missing references.` in the final report, with `<paths>` replaced by the missing relative paths.
 
 ### Step 2: Detect Code Signals and Select Topic Recipes
 
-Scan the code for signals that indicate which pattern categories to check. If reference files were loaded, use their `## Detection` sections. Otherwise, use the inline recipes in Step 3.
+Scan the code for signals that indicate which pattern categories to check. Use the `## Detection` sections from loaded reference files and the inline recipes in Step 3 for categories whose reference files are unavailable.
 
 | Signal in Code | Topic |
 |----------------|-------|
