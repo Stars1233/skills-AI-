@@ -62,14 +62,7 @@ jobs:
           path: super-linter.log
           retention-days: 7
 
-models:
-  providers:
-    github-copilot:
-      models:
-        'auto':
-          cost:
-            input: "0e0"
-            output: "0e0"
+model: ${{ vars.GH_AW_MODEL_AGENT_COPILOT || vars.GH_AW_DEFAULT_MODEL_COPILOT || 'claude-sonnet-4.6' }}
 
 permissions:
   contents: read
