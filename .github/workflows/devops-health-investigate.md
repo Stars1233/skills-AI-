@@ -34,6 +34,15 @@ on:
 concurrency:
   group: gh-aw-${{ github.workflow }}-${{ inputs.finding_id }}
 
+models:
+  providers:
+    github-copilot:
+      models:
+        'auto':
+          cost:
+            input: "0e0"
+            output: "0e0"
+
 permissions:
   contents: read
   actions: read

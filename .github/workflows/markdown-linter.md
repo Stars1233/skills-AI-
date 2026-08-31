@@ -62,6 +62,15 @@ jobs:
           path: super-linter.log
           retention-days: 7
 
+models:
+  providers:
+    github-copilot:
+      models:
+        'auto':
+          cost:
+            input: "0e0"
+            output: "0e0"
+
 permissions:
   contents: read
   actions: read

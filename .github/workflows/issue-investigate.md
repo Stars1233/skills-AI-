@@ -17,6 +17,15 @@ if: ${{ github.event.label.name == 'auto-investigate' }}
 concurrency:
   group: gh-aw-${{ github.workflow }}-${{ github.event.issue.number }}
 
+models:
+  providers:
+    github-copilot:
+      models:
+        'auto':
+          cost:
+            input: "0e0"
+            output: "0e0"
+
 permissions:
   contents: read
   issues: read

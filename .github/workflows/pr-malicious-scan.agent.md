@@ -26,6 +26,15 @@ concurrency:
   group: gh-aw-${{ github.workflow }}-${{ inputs.pr_number }}
   cancel-in-progress: true
 
+models:
+  providers:
+    github-copilot:
+      models:
+        'auto':
+          cost:
+            input: "0e0"
+            output: "0e0"
+
 permissions:
   contents: read
   pull-requests: read
