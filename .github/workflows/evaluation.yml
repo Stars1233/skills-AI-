@@ -1705,7 +1705,7 @@ jobs:
           REPO_URL="https://x-access-token:${SKILLS_DATA_TOKEN}@github.com/dotnet/skills-data.git"
 
           if git ls-remote --exit-code --heads "$REPO_URL" dashboard-session-data > /dev/null 2>&1; then
-            git clone --branch dashboard-session-data --single-branch --depth 1 "$REPO_URL" session-deploy
+            git clone --depth=1 --branch dashboard-session-data --single-branch "$REPO_URL" session-deploy
           else
             mkdir session-deploy && cd session-deploy && git init && git checkout -b dashboard-session-data
             git remote add origin "$REPO_URL"
