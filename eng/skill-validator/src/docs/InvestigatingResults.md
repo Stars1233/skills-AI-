@@ -8,9 +8,8 @@
 > the bounded retry and fail-closed rules.
 
 > **Vally schema:** Vally adapter results use an independently owned and
-> versioned schema. Current `main` emits schema version 3; the version 4 shape
-> reviewed in dotnet/skills#1079 adds separate activation-contract and
-> preference-eligibility evidence. `state` is authoritative:
+> versioned schema. Consult the current Vally investigation guide for its
+> schema version and fields. `state` is authoritative:
 > `VALID_PASS`, `VALID_REGRESSION`, `VALID_NO_CHANGE`, or
 > `INVALID_INCONCLUSIVE`. Use `stateReason` and `errors[]` for machine-readable
 > causes. `preferenceRegressed` is report-only LLM preference evidence and is
