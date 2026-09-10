@@ -104,8 +104,11 @@ class TokenFailoverTests(unittest.TestCase):
                 self.assertEqual([entry["model"] for entry in entries], models)
                 for entry in entries:
                     is_gpt = entry["model"].startswith("gpt-")
-                    self.assertEqual(entry["judge"], "claude-haiku-4.5" if is_gpt else "gpt-5.6-terra")
-                    self.assertEqual(entry["judge2"], "")
+                    self.assertEqual(entry["judge"], "claude-opus-4.8" if is_gpt else "gpt-5.6-terra")
+                    self.assertEqual(
+                        entry["judge2"],
+                        "claude-haiku-4.5" if is_gpt and event == "schedule" else "",
+                    )
                     self.assertNotEqual(entry["judge"], entry["model"])
 
     def test_health_and_triage_models_are_separate_from_evaluation(self) -> None:

@@ -1009,8 +1009,8 @@ jobs:
           # Resolve a matrix profile, then expand each plugin/shard entry across
           # the selected executor models, attaching a cross-family primary judge
           # (judge is never the same MODEL as the executor, and cross-family
-          # where possible). The optional second judge is currently disabled.
-          # Every trigger resolves to a
+          # where possible) plus, for the scheduled dual-judge cadence, an
+          # optional within-family second judge. Every trigger resolves to a
           # cross-family profile: the two DEFAULT models are the floor (every PR
           # gate and every scheduled day a heavier tier does not occupy), and
           # heavier profiles are opt-in via a workflow_dispatch matrix_profile,
@@ -1076,6 +1076,11 @@ jobs:
               '0 7 * * 0'     { $matrixProfile = 'newer' }
               default         { $matrixProfile = 'default' }
             }
+            # Judge-comparison experiment: run the optional second judge on every
+            # scheduled run for the comparison window, so claude-opus-4.8 (primary)
+            # and claude-haiku-4.5 (judge2) score the same GPT-executor transcripts
+            # and can be compared before switching the primary judge to the cheaper model.
+            $dualJudge = $true
           }
 
           if ($matrixProfile -in @('default','mid','opus48','full','newer')) {
@@ -1094,18 +1099,20 @@ jobs:
               'newer'   = @('gpt-5.6-sol', 'claude-opus-5', 'claude-sonnet-5')
             }
             # §10.5 judge routing. Primary = cross-family (never the same model, and
-            # a different family in every case here). Keep judge2 empty now that
-            # Haiku is primary; running Haiku twice adds no independent comparison.
+            # a different family in every case here). judge2 is the OPTIONAL second
+            # judge used only on the scheduled dual-judge cadence.
             #   - Non-GPT executor legs (Claude/MAI) are judged by gpt-5.6-terra with
             #     NO second judge (judge2 = '').
-            #   - GPT executor legs are judged by claude-haiku-4.5, with no second judge.
+            #   - GPT executor legs are judged primarily by claude-opus-4.8 and carry
+            #     judge2 = claude-haiku-4.5, so the same transcripts are scored by
+            #     both judges on the scheduled dual-judge cadence and can be compared.
             $judgeRoutes = @{
               'claude-opus-4.8'         = @{ judge = 'gpt-5.6-terra'; judge2 = '' }
-              'gpt-5.6-luna'            = @{ judge = 'claude-haiku-4.5'; judge2 = '' }
+              'gpt-5.6-luna'            = @{ judge = 'claude-opus-4.8'; judge2 = 'claude-haiku-4.5' }
               'claude-haiku-4.5'        = @{ judge = 'gpt-5.6-terra'; judge2 = '' }
               'mai-code-1-flash-picker' = @{ judge = 'gpt-5.6-terra'; judge2 = '' }
-              'gpt-5.3-codex'           = @{ judge = 'claude-haiku-4.5'; judge2 = '' }
-              'gpt-5.6-sol'             = @{ judge = 'claude-haiku-4.5'; judge2 = '' }
+              'gpt-5.3-codex'           = @{ judge = 'claude-opus-4.8'; judge2 = 'claude-haiku-4.5' }
+              'gpt-5.6-sol'             = @{ judge = 'claude-opus-4.8'; judge2 = 'claude-haiku-4.5' }
               'claude-sonnet-5'         = @{ judge = 'gpt-5.6-terra'; judge2 = '' }
               'claude-opus-5'           = @{ judge = 'gpt-5.6-terra'; judge2 = '' }
             }
@@ -1143,8 +1150,8 @@ jobs:
             if ("$($e.name)" -notmatch $namePattern -or "$($e.name)" -match '\.\.' -or "$($e.name)" -eq '.') {
               throw "Refusing unsafe matrix entry: name '$($e.name)' must match $namePattern, not be '.', and not contain '..'"
             }
-            # model/judge are always present; judge2 is optional (currently empty).
-            # All flow into CLI args in the
+            # model/judge are always present; judge2 is optional (empty unless the
+            # scheduled dual-judge cadence sets it). All flow into CLI args in the
             # runner, so hold them to the same strict allowlist as names.
             foreach ($mk in @('model', 'judge', 'judge2')) {
               $mv = "$($e[$mk])"
@@ -1931,16 +1938,17 @@ jobs:
         shell: pwsh
 
       - name: Generate judge-comparison data
-        # Retain support for artifacts from the earlier dual-judge experiment.
-        # Pair each skill's PRIMARY verdict with its SECOND-judge verdict by
+        # GPT-executor dual-judge comparison (§10.6). Pair each skill's PRIMARY
+        # verdict (claude-opus-4.8 judge) with its SECOND-judge verdict (claude-haiku-4.5) by
         # (executor model, skill) and record the SAME stat set for both judges
         # (state, preferenceRegressed, passed, conclusive, underpowered,
         # meanScore, winRate, stimulus-vote count in legacy field `trialCount`) plus an
         # agreement flag, appending to an isolated
-        # judge-comparison.json. With judge2 disabled, new runs have no crossjudge
-        # artifacts and this step no-ops. It is NOT listed in components.json
+        # judge-comparison.json. This is experiment-only data: it runs ONLY on the
+        # scheduled dual-judge cadence (no crossjudge artifacts exist on PR runs, so
+        # this step no-ops there), it is deliberately NOT listed in components.json
         # so it never renders as a dashboard plugin, and it is never posted to any
-        # PR comment.
+        # PR comment. It exists purely to decide whether to switch the primary judge.
         shell: pwsh
         run: |
           if (-not (Test-Path "all-crossjudge")) {
