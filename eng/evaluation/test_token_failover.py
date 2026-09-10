@@ -68,25 +68,29 @@ class TokenFailoverTests(unittest.TestCase):
             + "\nConvertTo-Json -InputObject @($entries) -Compress\n"
         )
         cases = [
-            ("pull_request", "", "", "", ["claude-sonnet-5", "gpt-5.6-luna"], False),
-            ("pull_request_target", "", "", "", ["claude-sonnet-5", "gpt-5.6-luna"], False),
-            ("workflow_dispatch", "", "", "", ["claude-sonnet-5", "gpt-5.6-luna"], False),
-            ("issue_comment", "/evaluate", "", "", ["claude-sonnet-5", "gpt-5.6-luna"], False),
+            ("pull_request", "", "", "", ["claude-sonnet-5", "gpt-5.6-luna"]),
+            ("pull_request_target", "", "", "", ["claude-sonnet-5", "gpt-5.6-luna"]),
+            ("workflow_dispatch", "", "", "", ["claude-sonnet-5", "gpt-5.6-luna"]),
+            ("issue_comment", "/evaluate", "", "", ["claude-sonnet-5", "gpt-5.6-luna"]),
             ("pull_request_review", "/evaluate --full", "", "", [
                 "claude-sonnet-5", "gpt-5.6-luna", "claude-haiku-4.5",
                 "mai-code-1-flash-picker", "gpt-5.3-codex", "claude-opus-4.8",
-            ], False),
+            ]),
             ("workflow_dispatch", "", "newer", "", [
                 "gpt-5.6-sol", "claude-opus-5", "claude-sonnet-5",
-            ], False),
-            ("schedule", "", "", "0 7 * * 1,3,5", ["claude-sonnet-5", "gpt-5.6-luna"], True),
+            ]),
+            ("schedule", "", "", "0 7 * * 1,3,5", ["claude-sonnet-5", "gpt-5.6-luna"]),
             ("schedule", "", "", "0 7 * * 2,6", [
                 "claude-haiku-4.5", "mai-code-1-flash-picker", "gpt-5.3-codex",
-            ], True),
-            ("workflow_dispatch", "", "opus48", "", ["claude-opus-4.8"], False),
+            ]),
+            ("schedule", "", "", "0 7 * * 0", [
+                "gpt-5.6-sol", "claude-opus-5", "claude-sonnet-5",
+            ]),
+            ("schedule", "", "", "0 7 * * 4", ["claude-opus-4.8"]),
+            ("workflow_dispatch", "", "opus48", "", ["claude-opus-4.8"]),
         ]
-        for event, body, profile, schedule, models, dual_judge in cases:
-            with self.subTest(event=event, profile=profile):
+        for event, body, profile, schedule, models in cases:
+            with self.subTest(event=event, profile=profile, schedule=schedule):
                 env = dict(os.environ, EVAL_EVENT_NAME=event,
                            EVAL_COMMENT_BODY=body if event == "issue_comment" else "",
                            EVAL_REVIEW_BODY=body if event == "pull_request_review" else "",
@@ -100,8 +104,9 @@ class TokenFailoverTests(unittest.TestCase):
                 self.assertEqual([entry["model"] for entry in entries], models)
                 for entry in entries:
                     is_gpt = entry["model"].startswith("gpt-")
-                    self.assertEqual(entry["judge"], "claude-opus-4.8" if is_gpt else "gpt-5.6-terra")
-                    self.assertEqual(entry["judge2"], "claude-haiku-4.5" if is_gpt and dual_judge else "")
+                    self.assertEqual(entry["judge"], "claude-haiku-4.5" if is_gpt else "gpt-5.6-terra")
+                    self.assertEqual(entry["judge2"], "")
+                    self.assertNotEqual(entry["judge"], entry["model"])
 
     def test_health_and_triage_models_are_separate_from_evaluation(self) -> None:
         for name in (
