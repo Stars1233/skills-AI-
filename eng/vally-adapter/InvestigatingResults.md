@@ -27,7 +27,7 @@ workflows default to `gpt-5.6-sol`; they do not choose the PR evaluation models.
 ### SDK startup failures
 
 `Cannot set session filesystem provider while sessions are active` can indicate
-an SDK startup race, not a skill or judge failure. In SDK 1.0.13, concurrent
+an SDK startup race, not a skill or judge failure. In SDK 1.0.11 and 1.0.13, concurrent
 startup calls can create multiple transports, and session creation can use a
 connection before its filesystem provider is ready. The trusted
 `eng/evaluation-tools/vally.mjs` launcher loads a version-checked startup guard.

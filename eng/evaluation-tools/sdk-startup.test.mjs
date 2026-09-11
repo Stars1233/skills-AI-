@@ -11,7 +11,10 @@ function deferred() {
 
 // Use the real SDK startup/session methods, but no runtime process or model calls.
 function clientFixture() {
-  const client = new CopilotClient({ useLoggedInUser: false });
+  const client = new CopilotClient({
+    useLoggedInUser: false,
+    connection: { kind: 'stdio', path: process.execPath },
+  });
   const entered = deferred();
   const release = deferred();
   const calls = [];
