@@ -501,6 +501,16 @@ esac
             "import.meta.resolve('@github/copilot-linux-x64/sdk')",
             install_script,
         )
+        for filename in ("sdk-startup.mjs", "vally.mjs"):
+            self.assertIn(
+                f'"$RUNNER_TEMP/trusted-validator-src/eng/evaluation-tools/{filename}"',
+                install_script,
+            )
+        self.assertIn('ln -s ../vally.mjs "$RUNNER_TEMP/evaluation-tools/bin/vally"', install_script)
+        self.assertGreater(
+            install_script.index('echo "$RUNNER_TEMP/evaluation-tools/bin"'),
+            install_script.index('echo "$RUNNER_TEMP/evaluation-tools/node_modules/.bin"'),
+        )
 
     def test_evaluation_tool_manifest_has_secretless_smoke_test(self) -> None:
         workflow = yaml.safe_load(TEST_WORKFLOW.read_text(encoding="utf-8"))
@@ -520,6 +530,11 @@ esac
 
         smoke_script = steps["Smoke test evaluation tools"]["run"]
         self.assertIn("node_modules/.bin/vally --version", smoke_script)
+        self.assertIn("node vally.mjs --version", smoke_script)
+        self.assertIn(
+            "node --test eng/evaluation-tools/*.test.mjs",
+            steps["Test SDK startup ordering without model calls"]["run"],
+        )
         self.assertIn("node_modules/.bin/copilot --version", smoke_script)
         self.assertIn(
             "import.meta.resolve('@github/copilot-linux-x64/sdk')",
