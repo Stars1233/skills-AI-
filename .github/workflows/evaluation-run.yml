@@ -403,11 +403,9 @@ jobs:
             echo "::error::Invalid target_kind '$ENTRY_TARGET_KIND' (must be skill or agent)"; exit 1
           fi
           # Cross-family executor/judge fields (IMPACT-ANALYSIS.md §10) are
-          # OPTIONAL: they are empty in the single-model default and non-empty
-          # only when the discover job fans the matrix across models. When
-          # present they override the executor/judge below, so hold them to the
-          # same strict allowlist as names. Empty = "use the experiment-file
-          # default" and is skipped (not an error).
+          # populated when the discover job expands the selected profile.
+          # They override the experiment-file defaults below, so hold them to
+          # the same strict allowlist as names.
           for mval in "$ENTRY_MODEL" "$ENTRY_JUDGE"; do
             if [ -n "$mval" ]; then
               if ! [[ "$mval" =~ $name_re ]] || [[ "$mval" == "." ]] || [[ "$mval" == *".."* ]]; then
