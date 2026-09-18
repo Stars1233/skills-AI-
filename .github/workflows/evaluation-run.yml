@@ -552,11 +552,9 @@ jobs:
           MODEL="$(read_override model)"; MODEL="${MODEL:-$DEFAULT_MODEL}"
           JUDGE_MODEL="$(read_override judge_model)"; JUDGE_MODEL="${JUDGE_MODEL:-$DEFAULT_JUDGE_MODEL}"
           # A cross-family matrix entry (IMPACT-ANALYSIS.md §10) injects the
-          # executor model + judge(s) directly (validated upstream in `discover`).
-          # When present they take precedence over the experiment file so one base
-          # experiment fans across models; when absent (the single-model default)
-          # the experiment file stays the source of truth and behavior is
-          # byte-for-byte unchanged.
+          # executor model and its single judge directly (validated upstream in
+          # `discover`). They take precedence over the experiment file so one
+          # base experiment fans across models.
           if [ -n "$ENTRY_MODEL" ]; then MODEL="$ENTRY_MODEL"; fi
           if [ -n "$ENTRY_JUDGE" ]; then JUDGE_MODEL="$ENTRY_JUDGE"; fi
           model_re='^[A-Za-z0-9._:/-]+$'

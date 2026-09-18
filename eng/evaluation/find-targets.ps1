@@ -437,7 +437,7 @@ if ($evt -eq 'workflow_dispatch') {
 
 if ($matrixProfile -in @('default','mid','sol','full','newer')) {
   # §10.2 model tiers. Cost-optimized cadence: the two DEFAULT models
-  # ({sonnet-5, gpt-5.6-luna}) carry every PR and every scheduled day that
+  # ({claude-sonnet-5, gpt-5.6-luna}) carry every PR and every scheduled day that
   # no heavier tier occupies. The cheap MID models run at a lower cadence
   # for periodic signal. The SOL and frontier NEWER tiers run
   # once a week and DO NOT co-run the defaults (they replace them that
