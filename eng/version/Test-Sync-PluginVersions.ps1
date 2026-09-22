@@ -331,21 +331,23 @@ function Test-LegacyHistoryRemainsTrusted {
         'Manifest transitions before checkpoint validation must remain a trusted migration baseline.'
 }
 
-function Test-MissingClaudeManifestIsRepaired {
+function Test-MissingClaudeManifestIsRejected {
     $repo = New-TestRepository 'missing-claude-manifest'
     $claudeManifest = Join-Path $repo 'plugins/sample/.claude-plugin/plugin.json'
     Remove-Item -LiteralPath $claudeManifest
 
-    $report = @(Invoke-Sync $repo)
-    Assert-Equal 1 $report.Count 'A missing Claude manifest must be reported as drift.'
+    $message = $null
+    try {
+        [void](Invoke-Sync $repo -Write)
+    }
+    catch {
+        $message = $_.Exception.Message
+    }
 
-    [void](Invoke-Sync $repo -Write)
-    Assert-Equal $true (Test-Path $claudeManifest) 'Version sync must recreate a missing Claude manifest.'
-    Assert-Equal $true ([string]::Equals(
-        [IO.File]::ReadAllText((Join-Path $repo 'plugins/sample/plugin.json')),
-        [IO.File]::ReadAllText($claudeManifest),
-        [StringComparison]::Ordinal)) `
-        'The recreated Claude manifest must exactly match the root manifest.'
+    Assert-Equal $true ($message -like '*missing .claude-plugin/plugin.json*') `
+        'Version sync must reject a missing Claude manifest instead of copying unsafe root fields.'
+    Assert-Equal $false (Test-Path $claudeManifest) `
+        'Version sync must not recreate a missing Claude manifest from the root manifest.'
 }
 
 function Test-ClaudeManifestHostFieldsArePreserved {
@@ -402,7 +404,7 @@ try {
     Test-ManualManifestInflationIsRejected
     Test-ManualManifestDowngradeIsRejected
     Test-LegacyHistoryRemainsTrusted
-    Test-MissingClaudeManifestIsRepaired
+    Test-MissingClaudeManifestIsRejected
     Test-ClaudeManifestHostFieldsArePreserved
     Test-RepositoryClaudeManifests
     Write-Host "Passed $script:assertions plugin-version assertions."
