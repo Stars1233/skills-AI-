@@ -357,9 +357,10 @@ function Test-ClaudeManifestHostFieldsArePreserved {
     [IO.File]::WriteAllText($claudeManifest, $content)
     Add-PluginContent $repo 'skills/example/SKILL.md' 'changed content' 'Change plugin content'
 
-    [void](Invoke-Sync $repo -Write)
+    $report = @(Invoke-Sync $repo -Write)
     $claude = Get-Content $claudeManifest -Raw | ConvertFrom-Json
-    Assert-Equal '0.1.5' $claude.version 'Version sync must update the Claude manifest version.'
+    Assert-Equal $report[0].computed $claude.version `
+        'Version sync must update the Claude manifest to the computed version.'
     Assert-Equal './.lsp.json' $claude.lspServers `
         'Version sync must preserve Claude-specific manifest fields.'
 }
