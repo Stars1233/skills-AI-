@@ -348,22 +348,20 @@ function Test-MissingClaudeManifestIsRepaired {
         'The recreated Claude manifest must exactly match the root manifest.'
 }
 
-function Test-ClaudeManifestCaseDriftIsRepaired {
-    $repo = New-TestRepository 'claude-manifest-case-drift'
-    $rootManifest = Join-Path $repo 'plugins/sample/plugin.json'
+function Test-ClaudeManifestHostFieldsArePreserved {
+    $repo = New-TestRepository 'claude-manifest-host-fields'
     $claudeManifest = Join-Path $repo 'plugins/sample/.claude-plugin/plugin.json'
-    $content = [IO.File]::ReadAllText($claudeManifest).Replace('Test plugin.', 'test plugin.')
+    $content = [IO.File]::ReadAllText($claudeManifest).Replace(
+        '"skills": ["./skills/"]',
+        '"skills": ["./skills/"],' + [Environment]::NewLine + '  "lspServers": "./.lsp.json"')
     [IO.File]::WriteAllText($claudeManifest, $content)
-
-    $report = @(Invoke-Sync $repo)
-    Assert-Equal 1 $report.Count 'Case-only Claude manifest drift must be reported.'
+    Add-PluginContent $repo 'skills/example/SKILL.md' 'changed content' 'Change plugin content'
 
     [void](Invoke-Sync $repo -Write)
-    Assert-Equal $true ([string]::Equals(
-        [IO.File]::ReadAllText($rootManifest),
-        [IO.File]::ReadAllText($claudeManifest),
-        [StringComparison]::Ordinal)) `
-        'Version sync must repair case-only Claude manifest drift.'
+    $claude = Get-Content $claudeManifest -Raw | ConvertFrom-Json
+    Assert-Equal '0.1.5' $claude.version 'Version sync must update the Claude manifest version.'
+    Assert-Equal './.lsp.json' $claude.lspServers `
+        'Version sync must preserve Claude-specific manifest fields.'
 }
 
 function Test-RepositoryClaudeManifests {
@@ -376,12 +374,16 @@ function Test-RepositoryClaudeManifests {
         $claudeManifest = Join-Path $pluginDirectory.FullName '.claude-plugin/plugin.json'
         Assert-Equal $true (Test-Path $claudeManifest) `
             "Plugin '$($pluginDirectory.Name)' must carry .claude-plugin/plugin.json."
-        Assert-Equal $true ([string]::Equals(
-            [IO.File]::ReadAllText($rootManifest),
-            [IO.File]::ReadAllText($claudeManifest),
-            [StringComparison]::Ordinal)) `
-            "Plugin '$($pluginDirectory.Name)' must keep its Claude manifest synchronized with plugin.json."
+        $rootVersion = (Get-Content $rootManifest -Raw | ConvertFrom-Json).version
+        $claudeVersion = (Get-Content $claudeManifest -Raw | ConvertFrom-Json).version
+        Assert-Equal $rootVersion $claudeVersion `
+            "Plugin '$($pluginDirectory.Name)' must keep its Claude manifest version synchronized with plugin.json."
     }
+
+    $dotnetClaudeManifest = Get-Content `
+        (Join-Path $repository 'plugins/dotnet/.claude-plugin/plugin.json') -Raw | ConvertFrom-Json
+    Assert-Equal './.lsp.json' $dotnetClaudeManifest.lspServers `
+        "The dotnet Claude manifest must reference Claude Code's LSP configuration."
 }
 
 [void](New-Item -ItemType Directory -Path $testRoot)
@@ -400,7 +402,7 @@ try {
     Test-ManualManifestDowngradeIsRejected
     Test-LegacyHistoryRemainsTrusted
     Test-MissingClaudeManifestIsRepaired
-    Test-ClaudeManifestCaseDriftIsRepaired
+    Test-ClaudeManifestHostFieldsArePreserved
     Test-RepositoryClaudeManifests
     Write-Host "Passed $script:assertions plugin-version assertions."
 }

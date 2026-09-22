@@ -390,8 +390,8 @@ foreach ($name in $Plugins) {
     $pluginDir = Join-Path $pluginsRoot $name
     $manifest = Join-Path $pluginDir 'plugin.json'
     $codexManifest = Join-Path $pluginDir '.codex-plugin' 'plugin.json'
-    # Claude Code needs an inline plugin.json. The root manifest is authoritative because the two
-    # formats are identical; -Write creates or replaces the Claude copy when it is missing or stale.
+    # Claude Code needs an inline plugin.json, but host-specific fields can differ from the root
+    # manifest. -Write bootstraps a missing copy, then keeps only its version synchronized.
     $claudeManifest = Join-Path $pluginDir '.claude-plugin' 'plugin.json'
 
     # A shipped plugin (one with a plugin.json) must define a version base; fail loudly rather than
@@ -416,9 +416,8 @@ foreach ($name in $Plugins) {
     # Read the Codex manifest too so we detect (and repair) the case where the two manifests have
     # drifted apart — e.g. a hand-edit updated one but not the other.
     $currentCodex = (Get-Content $codexManifest -Raw | ConvertFrom-Json).version
-    $rootManifestContent = [IO.File]::ReadAllText($manifest)
-    $claudeManifestContent = if (Test-Path $claudeManifest) {
-        [IO.File]::ReadAllText($claudeManifest)
+    $currentClaude = if (Test-Path $claudeManifest) {
+        (Get-Content $claudeManifest -Raw | ConvertFrom-Json).version
     } else { $null }
 
     # The version.json base must be major.minor (e.g. "0.1"). Validate it before either
@@ -478,10 +477,10 @@ foreach ($name in $Plugins) {
         throw "Computed version '$computed' for plugin '$name' is not a valid major.minor.patch — check plugins/$name/version.json"
     }
 
-    # The Claude manifest must be an exact copy of the root manifest. Treat a missing or stale copy
-    # as drift so both the weekly sync and /version-bump can repair older branches automatically.
+    # All host manifests share the computed version, but their other fields can be host-specific.
+    # A missing Claude manifest is drift and is bootstrapped from the root manifest on write.
     $changed = ($computed -ne $current) -or ($computed -ne $currentCodex) -or
-               ($claudeManifestContent -cne $rootManifestContent)
+               ($computed -ne $currentClaude)
 
     if ($OnlyChanged -and -not $changed) { continue }
 
@@ -489,7 +488,12 @@ foreach ($name in $Plugins) {
         [void](Set-ManifestVersion -Path $manifest -Version $computed)
         [void](Set-ManifestVersion -Path $codexManifest -Version $computed)
         [void](New-Item -ItemType Directory -Path (Split-Path $claudeManifest -Parent) -Force)
-        [IO.File]::WriteAllText($claudeManifest, [IO.File]::ReadAllText($manifest))
+        if (-not (Test-Path $claudeManifest)) {
+            [IO.File]::WriteAllText($claudeManifest, [IO.File]::ReadAllText($manifest))
+        }
+        else {
+            [void](Set-ManifestVersion -Path $claudeManifest -Version $computed)
+        }
     }
 
     $results.Add([ordered]@{
