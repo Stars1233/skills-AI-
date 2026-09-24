@@ -625,4 +625,133 @@ public class EvaluateCommandTests
             Directory.Delete(repoRoot, true);
         }
     }
+
+    // --scenario narrows a rerun to the scenarios that need it. Transient-timeout recovery
+    // depends on it re-running exactly one scenario, so a typo must fail loudly rather than
+    // evaluate nothing and report a clean run.
+
+    private static EvalTargetInfo TargetWithScenarios(string name, params string[] scenarioNames) =>
+        new(
+            Name: name,
+            Path: $"plugins/demo/agents/{name}.agent.md",
+            Kind: EvalTargetKind.Agent,
+            Skill: null,
+            Agent: null,
+            EvalPath: $"tests/demo/agent.{name}/eval.yaml",
+            EvalConfig: new EvalConfig([.. scenarioNames.Select(scenario => new EvalScenario(scenario, "prompt"))]),
+            PluginRoot: "plugins/demo",
+            McpServers: null);
+
+    [TestMethod]
+    public void FilterTargetsByScenario_KeepsOnlyTheNamedScenario()
+    {
+        var targets = new[] { TargetWithScenarios("writer", "alpha", "beta", "gamma") };
+
+        var (filtered, unknown) = EvaluateCommand.FilterTargetsByScenario(targets, ["beta"]);
+
+        Assert.IsEmpty(unknown);
+        var target = Assert.ContainsSingle(filtered);
+        var scenario = Assert.ContainsSingle(target.EvalConfig!.Scenarios);
+        Assert.AreEqual("beta", scenario.Name);
+    }
+
+    [TestMethod]
+    public void FilterTargetsByScenario_DropsTargetsWithNoNamedScenario()
+    {
+        var targets = new[]
+        {
+            TargetWithScenarios("writer", "alpha"),
+            TargetWithScenarios("auditor", "beta"),
+        };
+
+        var (filtered, unknown) = EvaluateCommand.FilterTargetsByScenario(targets, ["beta"]);
+
+        Assert.IsEmpty(unknown);
+        Assert.AreEqual("auditor", Assert.ContainsSingle(filtered).Name);
+    }
+
+    [TestMethod]
+    public void FilterTargetsByScenario_ReportsNamesThatMatchNothing()
+    {
+        var targets = new[] { TargetWithScenarios("writer", "alpha") };
+
+        var (filtered, unknown) = EvaluateCommand.FilterTargetsByScenario(targets, ["alpha", "typo"]);
+
+        Assert.ContainsSingle(filtered);
+        Assert.AreEqual("typo", Assert.ContainsSingle(unknown));
+    }
+
+    [TestMethod]
+    public void FilterTargetsByScenario_MatchesRegardlessOfCase()
+    {
+        var targets = new[] { TargetWithScenarios("writer", "Generate Tests") };
+
+        var (filtered, unknown) = EvaluateCommand.FilterTargetsByScenario(targets, ["generate tests"]);
+
+        Assert.IsEmpty(unknown);
+        Assert.ContainsSingle(Assert.ContainsSingle(filtered).EvalConfig!.Scenarios);
+    }
+
+    [TestMethod]
+    public void FilterTargetsByScenario_KeepsEveryNamedScenarioAcrossTargets()
+    {
+        var targets = new[]
+        {
+            TargetWithScenarios("writer", "alpha", "beta"),
+            TargetWithScenarios("auditor", "beta", "gamma"),
+        };
+
+        var (filtered, unknown) = EvaluateCommand.FilterTargetsByScenario(targets, ["beta", "gamma"]);
+
+        Assert.IsEmpty(unknown);
+        Assert.AreEqual(2, filtered.Count);
+        CollectionAssert.AreEqual(
+            new[] { "beta" },
+            filtered[0].EvalConfig!.Scenarios.Select(scenario => scenario.Name).ToArray());
+        CollectionAssert.AreEqual(
+            new[] { "beta", "gamma" },
+            filtered[1].EvalConfig!.Scenarios.Select(scenario => scenario.Name).ToArray());
+    }
+
+    [TestMethod]
+    public void FilterTargetsByScenario_SkipsTargetsWithoutAnEvalConfig()
+    {
+        var withoutConfig = TargetWithScenarios("writer", "alpha") with { EvalConfig = null };
+
+        var (filtered, unknown) = EvaluateCommand.FilterTargetsByScenario([withoutConfig], ["alpha"]);
+
+        Assert.IsEmpty(filtered);
+        Assert.AreEqual("alpha", Assert.ContainsSingle(unknown));
+    }
+
+    [TestMethod]
+    public void FilterTargetsByName_ScopesSameNamedScenarioToItsOwningTarget()
+    {
+        var targets = new[]
+        {
+            TargetWithScenarios("writer", "shared"),
+            TargetWithScenarios("auditor", "shared"),
+        };
+
+        var (targetFiltered, unknownTargets) =
+            EvaluateCommand.FilterTargetsByName(targets, ["writer"]);
+        var (scenarioFiltered, unknownScenarios) =
+            EvaluateCommand.FilterTargetsByScenario(targetFiltered, ["shared"]);
+
+        Assert.IsEmpty(unknownTargets);
+        Assert.IsEmpty(unknownScenarios);
+        Assert.AreEqual("writer", Assert.ContainsSingle(scenarioFiltered).Name);
+    }
+
+    [TestMethod]
+    public void FilterTargetsByName_ReportsNamesThatMatchNothing()
+    {
+        var targets = new[] { TargetWithScenarios("writer", "alpha") };
+
+        var (filtered, unknown) =
+            EvaluateCommand.FilterTargetsByName(targets, ["writer", "typo"]);
+
+        Assert.AreEqual("writer", Assert.ContainsSingle(filtered).Name);
+        Assert.AreEqual("typo", Assert.ContainsSingle(unknown));
+    }
 }
